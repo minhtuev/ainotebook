@@ -186,15 +186,46 @@ class ChessWindow(QtWidgets.QMainWindow):
     def __init__(self, size: int = 720, parent=None) -> None:
         super().__init__(parent)
         self.setWindowTitle("Chess vs O3")
+
+        # Main splitter: left board, right reasoning
+        self.splitter = QtWidgets.QSplitter(QtCore.Qt.Orientation.Horizontal)
         self.widget = ChessWidget(size=size)
-        self.setCentralWidget(self.widget)
+        self.splitter.addWidget(self.widget)
+
+        self.reasoning_text = QtWidgets.QPlainTextEdit()
+        self.reasoning_text.setReadOnly(True)
+        self.reasoning_text.setLineWrapMode(QtWidgets.QPlainTextEdit.LineWrapMode.NoWrap)
+        mono = QtGui.QFontDatabase.systemFont(QtGui.QFontDatabase.FixedFont)
+        self.reasoning_text.setFont(mono)
+        self.splitter.addWidget(self.reasoning_text)
+        self.splitter.setStretchFactor(0, 3)
+        self.splitter.setStretchFactor(1, 2)
+        self.setCentralWidget(self.splitter)
+
         self.status = self.statusBar()
 
         # Shortcuts
         QtGui.QShortcut(QtGui.QKeySequence("Q"), self, activated=self.close)
         QtGui.QShortcut(QtGui.QKeySequence("R"), self, activated=self.reset)
+        QtGui.QShortcut(QtGui.QKeySequence("T"), self, activated=self.toggle_reasoning_panel)
 
     def reset(self) -> None:
         self.widget.reset()
+        self.reasoning_text.clear()
         self.status.showMessage("New game", 1500)
+
+    def set_reasoning_text(self, text: str) -> None:
+        self.reasoning_text.setPlainText(text)
+        # Scroll to top for new reasoning
+        self.reasoning_text.moveCursor(QtGui.QTextCursor.MoveOperation.Start)
+
+    def show_thinking(self) -> None:
+        self.set_reasoning_text("Thinking...")
+
+    def toggle_reasoning_panel(self) -> None:
+        # Show/hide right pane
+        if self.reasoning_text.isVisible():
+            self.reasoning_text.hide()
+        else:
+            self.reasoning_text.show()
 
